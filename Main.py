@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtMultimedia import QMediaPlaylist, QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QApplication, QWidget, QInputDialog, QLineEdit
 import SongDatabase
-import Song
 
 
 class App(QMainWindow):
