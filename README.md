@@ -3,7 +3,7 @@ Spotipy is an object-oriented MP3 Player written in Python.
 
 Functionalities Include:
 
-* Search recursively in directory provided by user for 'mp3' files
+* Search recursively in directory provided by user for '.mp3' files
 * Play, Pause and Shuffle Songs
 * Search for songs given Title, Artist or Album
 * Sort songs by Title, Artist or Album
