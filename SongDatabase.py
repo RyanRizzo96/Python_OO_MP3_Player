@@ -76,6 +76,9 @@ class SongDatabase:
             if search_song == my_songs[i].get_title():
                 print("Song found: ", my_songs[i].get_title())
                 return
+            elif search_song == my_songs[i].get_artist():
+                print("Song found: ", my_songs[i].get_title())
+                return
 
     @staticmethod
     def filter_songs_search(my_songs, search_filter):

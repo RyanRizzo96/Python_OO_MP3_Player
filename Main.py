@@ -186,6 +186,7 @@ class App(QMainWindow):
         for currentQTableWidgetItem in self.tableWidget.selectedItems():
             print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
             # Call func in SongDatabase to compare
+            self.tableWidget.selectRow(currentQTableWidgetItem.row())
             SongDatabase.SongDatabase.find_song_to_play(my_songs=self.my_songs, search_song=currentQTableWidgetItem.text())
 
     def sort_handler(self):
