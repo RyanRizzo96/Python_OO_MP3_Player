@@ -14,7 +14,7 @@ class App(QMainWindow):
         super().__init__()
         self.player = QMediaPlayer()        # QMediaPlayer class allows the playing of a media source.
         self.playlist = QMediaPlaylist()    # QMediaPlaylist class provides a list of media content to play.
-        self.title = 'PyTunes'
+        self.title = 'SpotiPy'
         self.left = 300
         self.top = 300
         self.width = 300
