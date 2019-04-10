@@ -22,6 +22,7 @@ class App(QMainWindow):
         self.userAction = -1  # 0- stopped, 1- playing 2-paused
         self.setup_UI()
         self.my_songs = []
+        self.user_row_clicked = []
 
     def setup_UI(self):
         # Add file menu
@@ -178,16 +179,21 @@ class App(QMainWindow):
         self.tableWidget.move(0, 0)
 
         # table selection change
-        self.tableWidget.itemClicked.connect(self.on_click)
+        current_row = self.tableWidget.itemClicked.connect(self.on_click)
+        print("ret var ", current_row)
 
     @pyqtSlot()
     def on_click(self):
         print("\n")
+        current_row = None  # Avoids reference before assignment
         for currentQTableWidgetItem in self.tableWidget.selectedItems():
-            print(currentQTableWidgetItem.row(), currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
+            current_row = currentQTableWidgetItem.row()
+            print(current_row, currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
             # Call func in SongDatabase to compare
-            self.tableWidget.selectRow(currentQTableWidgetItem.row())
+            self.tableWidget.selectRow(current_row)
             SongDatabase.SongDatabase.find_song_to_play(my_songs=self.my_songs, search_song=currentQTableWidgetItem.text())
+            self.user_row_clicked.append(current_row)
+        return current_row
 
     def sort_handler(self):
         pass
@@ -245,33 +251,15 @@ class App(QMainWindow):
         total = SongDatabase.SongDatabase.print_song_info(my_songs=self.my_songs)
         self.populate_table(total, self.my_songs)
 
-        # if folder_directory != None:
-        #     # QDirIterator class provides an iterator for directory entrylists.
-        #     it = QDirIterator(folder_directory)
-        #     it.next()   # next() function returns the path to the next directory entry and advances the iterator.
-        #     # hasNext() returns true if there is at least one more entry in the directory; otherwise, false is returned.
-        #     while it.hasNext():
-        #         # QFileInfo class provides system-independent file information.
-        #         # isDir() returns true if this object points to a directory or to a symbolic link to a directory;
-        #         # filePath() returns the file name, including the path (which may be absolute or relative).
-        #         if it.fileInfo().isDir() == False and it.filePath() != '.':     # Path delimiter
-        #             f_info = it.fileInfo()  # Access file information of current file
-        #             if f_info.suffix() in 'mp3':    # Check for .mp3 suffix
-        #                 self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(it.filePath()))) # add to playlist
-        #                 print("1 ", it.filePath())
-        #
-        #         it.next()
-        #     if it.fileInfo().isDir() == False and it.filePath() != '.':
-        #         f_info = it.fileInfo()
-        #         if f_info.suffix() in 'mp3':
-        #             self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(it.filePath())))
-        #             print("2 ", it.filePath())
-
         for i in range(len(self.my_songs)):
             self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(self.my_songs[i].get_path())))
 
     def populate_table(self, total, my_songs):
+        # clear all rows to re-populate
+        self.tableWidget.setRowCount(0)
         for row, data in enumerate(my_songs):
+            # print("ROW: ", row)
+
             self.tableWidget.insertRow(self.tableWidget.rowCount())
 
             self.tableWidget.setItem(row, 0, QTableWidgetItem(str(my_songs[row].get_title())
@@ -289,6 +277,8 @@ class App(QMainWindow):
             self.add_files()
         elif self.playlist.mediaCount() != 0:
             # if songs in playlist play current song
+            for i in range(len(self.user_row_clicked)):
+                print(self.user_row_clicked[i], self.my_songs[i].get_title())
             self.player.play()
             self.userAction = 1
 
