@@ -8,7 +8,6 @@ import SongDatabase
 from mutagen import File
 
 # TODO: Add search functionality to show results to user
-# TODO: Add pixmap for cover art
 # TODO: Add  more songs to test functionality
 # TODO: Allow user to remove songs
 
@@ -29,7 +28,7 @@ class App(QMainWindow):
         self.setup_UI()
         self.my_songs = []
         self.user_row_clicked = []
-
+        self.highlighted_row = None
         self.metadata = File("python.jpg")
 
     def setup_UI(self):
@@ -192,15 +191,15 @@ class App(QMainWindow):
     @pyqtSlot()
     def on_click(self):
         print("\n")
-        current_row = None  # Avoids reference before assignment
+        # self.highlighted_row = None  # Avoids reference before assignment
         for currentQTableWidgetItem in self.tableWidget.selectedItems():
-            current_row = currentQTableWidgetItem.row()
-            print(current_row, currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
+            self.highlighted_row = currentQTableWidgetItem.row()
+            print(self.highlighted_row, currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
             # Call func in SongDatabase to compare
-            self.tableWidget.selectRow(current_row)
+            self.tableWidget.selectRow(self.highlighted_row)
             SongDatabase.SongDatabase.find_song_to_play(my_songs=self.my_songs, search_song=currentQTableWidgetItem.text())
-            self.user_row_clicked.append(current_row)
-        return current_row
+            self.user_row_clicked.append(self.highlighted_row)
+        return self.highlighted_row
 
     def sort_handler(self):
         pass
@@ -212,7 +211,10 @@ class App(QMainWindow):
             SongDatabase.SongDatabase.filter_songs_search(self.my_songs, text)
 
     def remove_handler(self):
-        # self.player.playlist().removeMedia()
+        self.player.playlist().removeMedia(self.highlighted_row)    # remove from playlist
+        print("removed row: ", self.highlighted_row, "Song: ", self.my_songs[self.highlighted_row].get_title())
+        del self.my_songs[self.highlighted_row]     # remove from list
+        self.populate_table(self.my_songs)
         pass
 
     def selectionchange(self, i):
@@ -257,12 +259,12 @@ class App(QMainWindow):
         self.my_songs = SongDatabase.SongDatabase.retrieve_songs(directory=folder_directory)
         print(self.my_songs)
         total = SongDatabase.SongDatabase.print_song_info(my_songs=self.my_songs)
-        self.populate_table(total, self.my_songs)
+        self.populate_table(self.my_songs)
 
         for i in range(len(self.my_songs)):
             self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(self.my_songs[i].get_path())))
 
-    def populate_table(self, total, my_songs):
+    def populate_table(self, my_songs):
         # clear all rows to re-populate
         self.tableWidget.setRowCount(0)
         for row, data in enumerate(my_songs):
