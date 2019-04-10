@@ -4,12 +4,11 @@ from PyQt5.QtCore import QUrl, QDirIterator, Qt, pyqtSlot
 from PyQt5.QtWidgets import *
 from PyQt5.QtMultimedia import QMediaPlaylist, QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QApplication, QWidget, QInputDialog, QLineEdit, QLabel
-import SongDatabase
+from SongDatabase import *
 from mutagen import File
 
 # TODO: Add search functionality to show results to user
 # TODO: Add  more songs to test functionality
-# TODO: Allow user to remove songs
 
 
 class App(QMainWindow):
@@ -49,7 +48,7 @@ class App(QMainWindow):
         filemenu.addAction(help_act)
         windowmenu.addAction(theme_act)
 
-        help_act.triggered.connect(self.open_help)
+        help_act.triggered.connect(SongDatabase.open_help)
         folder_act.triggered.connect(self.add_files)
         theme_act.triggered.connect(self.toggle_colors)
 
@@ -197,7 +196,7 @@ class App(QMainWindow):
             print(self.highlighted_row, currentQTableWidgetItem.column(), currentQTableWidgetItem.text())
             # Call func in SongDatabase to compare
             self.tableWidget.selectRow(self.highlighted_row)
-            SongDatabase.SongDatabase.find_song_to_play(my_songs=self.my_songs, search_song=currentQTableWidgetItem.text())
+            SongDatabase.find_song_to_play(my_songs=self.my_songs, search_song=currentQTableWidgetItem.text())
             self.user_row_clicked.append(self.highlighted_row)
         return self.highlighted_row
 
@@ -208,7 +207,7 @@ class App(QMainWindow):
         text, ok_pressed = QInputDialog.getText(self, "Search", "Filter:", QLineEdit.Normal, "")
         if ok_pressed and text != '':
             print("Searching for: ", text)
-            SongDatabase.SongDatabase.filter_songs_search(self.my_songs, text)
+            SongDatabase.filter_songs_search(self.my_songs, text)
 
     def remove_handler(self):
         self.player.playlist().removeMedia(self.highlighted_row)    # remove from playlist
@@ -223,14 +222,6 @@ class App(QMainWindow):
         for count in range(self.cb1.count()):
             print(self.cb1.itemText(count))
         print("Current index", i, "selection changed ", self.cb1.currentText())
-
-    @staticmethod
-    def open_help():
-        choice = QMessageBox.question(None, 'Help', 'This application was developed by Ryan Rizzo as part of the'
-                                                    ' Software for Engineers Course', QMessageBox.Ok)
-
-        if choice == QMessageBox.Ok:
-            pass
 
     def add_files(self):
         # If playlist contains songs, simply call folder_iterator
@@ -256,9 +247,9 @@ class App(QMainWindow):
 
         print(folder_directory)
 
-        self.my_songs = SongDatabase.SongDatabase.retrieve_songs(directory=folder_directory)
+        self.my_songs = SongDatabase.retrieve_songs(directory=folder_directory)
         print(self.my_songs)
-        total = SongDatabase.SongDatabase.print_song_info(my_songs=self.my_songs)
+        total = SongDatabase.print_song_info(my_songs=self.my_songs)
         self.populate_table(self.my_songs)
 
         for i in range(len(self.my_songs)):

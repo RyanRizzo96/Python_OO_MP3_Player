@@ -6,6 +6,7 @@ from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 from mutagen import File
 from PyQt5 import QtGui
+from PyQt5.QtWidgets import QMessageBox
 
 
 class SongDatabase:
@@ -99,3 +100,10 @@ class SongDatabase:
         if instances_found == 0:
             print("Sorry, no songs found with the following Title or Artist or Album: ", search_filter)
 
+    @staticmethod
+    def open_help():
+        choice = QMessageBox.question(None, 'Help', 'This application was developed by Ryan Rizzo as part of the'
+                                                    ' Software for Engineers Course', QMessageBox.Ok)
+
+        if choice == QMessageBox.Ok:
+            pass
