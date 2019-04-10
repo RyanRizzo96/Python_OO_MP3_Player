@@ -7,6 +7,7 @@ Functionalities Include:
 * Play, Pause and Shuffle Songs
 * Search for songs given Title, Artist or Album
 * Sort songs by Title, Artist or Album
+* Adjust Volume
 
 
 ![image](https://user-images.githubusercontent.com/31866965/55819294-c1b89700-5af8-11e9-80fd-e4cef6614946.png)
