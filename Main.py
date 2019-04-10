@@ -7,10 +7,10 @@ from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QApplication, QWidge
 import SongDatabase
 from mutagen import File
 
-
 # TODO: Add search functionality to show results to user
 # TODO: Add pixmap for cover art
 # TODO: Add  more songs to test functionality
+# TODO: Allow user to remove songs
 
 
 class App(QMainWindow):
@@ -29,7 +29,8 @@ class App(QMainWindow):
         self.setup_UI()
         self.my_songs = []
         self.user_row_clicked = []
-        # self.song_cover_art
+
+        self.metadata = File("python.jpg")
 
     def setup_UI(self):
         # Add file menu
@@ -91,21 +92,7 @@ class App(QMainWindow):
         playlist_ctrl_layout = QHBoxLayout()
         playlist_func = QHBoxLayout()
 
-        pixmap = QPixmap()
-        metadata = File("C:/Users/ryanr/OneDrive/Desktop/MCAST Degree 3/Second Semester/Software Desgin and Analysis "
-                        "(1)/Home Assignment/my_music/Johnny Cash - Man in black with lyrics.mp3")
-
-        # Johnny Cash - Man in black with lyrics.mp3
-
-        for tag in metadata.tags.values():
-            if tag.FrameID == 'APIC':
-                pixmap.loadFromData(tag.data)
-                print("HERE (designer)")
-                break
-
-        pix_scaled = pixmap.scaled(256, 256, Qt.KeepAspectRatio)
-        self.label.setPixmap(pix_scaled)
-        self.label.setAlignment(Qt.AlignCenter)
+        self.show_cover_art()
 
         self.cb1 = QComboBox()
         self.cb1.addItem("Sort by Title")
@@ -225,6 +212,7 @@ class App(QMainWindow):
             SongDatabase.SongDatabase.filter_songs_search(self.my_songs, text)
 
     def remove_handler(self):
+        # self.player.playlist().removeMedia()
         pass
 
     def selectionchange(self, i):
@@ -291,6 +279,21 @@ class App(QMainWindow):
             self.tableWidget.setItem(row, 3, QTableWidgetItem(str(my_songs[row].get_length())
                                                               .strip('"\'')))
 
+    def show_cover_art(self):
+        pixmap = QPixmap()
+        try:
+            for tag in self.metadata.tags.values():
+                if tag.FrameID == 'APIC':
+                    pixmap.loadFromData(tag.data)
+                    print("HERE (designer)")
+                    break
+        except AttributeError:
+            print("No tags")
+
+        pix_scaled = pixmap.scaled(256, 256, Qt.KeepAspectRatio)
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setPixmap(pix_scaled)
+
     def play_handler(self):
         """Handles playing of songs.
         1. If no playlist present, prompt user to load mp3 files
@@ -309,6 +312,8 @@ class App(QMainWindow):
             elif self.playlist.mediaCount() != 0:
                 # 2. Playing first song if user has not clicked on table row
                 if not self.user_row_clicked:
+                    self.metadata = File(self.my_songs[0].get_path())
+                    self.show_cover_art()
                     self.player.playlist().setCurrentIndex(0)
                     self.player.play()
                 # 3. Playing desired song
@@ -319,6 +324,8 @@ class App(QMainWindow):
                     print("Playing Row: ", play_song, self.my_songs[play_song].get_title())
                     # Set current playlist index to play song
                     self.player.playlist().setCurrentIndex(play_song)
+                    self.metadata = File(self.my_songs[play_song].get_path())
+                    self.show_cover_art()
                     self.player.play()
                     self.userAction = 1
 
@@ -340,15 +347,27 @@ class App(QMainWindow):
             self.add_files()
         elif self.playlist.mediaCount() != 0:
             self.player.playlist().previous()
+            index = self.player.playlist().currentIndex()       # get current song index
+            print(index)
+            self.metadata = File(self.my_songs[index].get_path())     # update metadata
+            self.show_cover_art()                               # display current song art
 
     def shuffle_list(self):
         self.playlist.shuffle()
+        index = self.player.playlist().currentIndex()
+        print(index)
+        self.metadata = File(self.my_songs[index].get_path())
+        self.show_cover_art()
 
     def next_song(self):
         if self.playlist.mediaCount() == 0:
             self.add_files()
         elif self.playlist.mediaCount() != 0:
             self.player.playlist().next()
+            index = self.player.playlist().currentIndex()
+            print(self.my_songs[index].get_path())
+            self.metadata = File(self.my_songs[index].get_path())
+            self.show_cover_art()
 
     def song_changed(self, media):
         # if media is available, display URL on status bar
