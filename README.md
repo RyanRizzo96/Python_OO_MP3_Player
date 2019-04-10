@@ -14,6 +14,8 @@ Functionalities Include:
 
 ---
 
+User simply clicks on the song he wants to play (Ex: Man in Black by Johnny Cash) and then clicks on the Play button. If the user clicks next, the next song in the playlist will play accordingly.
+
 ![image](https://user-images.githubusercontent.com/31866965/55857776-4f829980-5b6e-11e9-90dd-3ae832cf3f44.png)
 
-User simply clicks on the song he wants to play (Man in Black by Johnny Cash) and then clicks on the Play button. If the user clicks next, the next song in the playlist will play accordingly.
+
