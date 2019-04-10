@@ -1,10 +1,16 @@
 import sys
-from PyQt5.QtGui import QPalette, QColor
+from PyQt5.QtGui import QPalette, QColor, QPixmap
 from PyQt5.QtCore import QUrl, QDirIterator, Qt, pyqtSlot
 from PyQt5.QtWidgets import *
 from PyQt5.QtMultimedia import QMediaPlaylist, QMediaPlayer, QMediaContent
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QApplication, QWidget, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QApplication, QWidget, QInputDialog, QLineEdit, QLabel
 import SongDatabase
+from mutagen import File
+
+
+# TODO: Add search functionality to show results to user
+# TODO: Add pixmap for cover art
+# TODO: Add  more songs to test functionality
 
 
 class App(QMainWindow):
@@ -23,6 +29,7 @@ class App(QMainWindow):
         self.setup_UI()
         self.my_songs = []
         self.user_row_clicked = []
+        # self.song_cover_art
 
     def setup_UI(self):
         # Add file menu
@@ -58,6 +65,7 @@ class App(QMainWindow):
     def add_controls(self):
         wid = QWidget(self)
         self.setCentralWidget(wid)
+        self.label = QLabel()
 
         # Add song controls
         volumeslider = QSlider(Qt.Horizontal, self)
@@ -81,9 +89,23 @@ class App(QMainWindow):
         control_area = QVBoxLayout()  # centralWidget
         controls = QHBoxLayout()
         playlist_ctrl_layout = QHBoxLayout()
-
         playlist_func = QHBoxLayout()
-        # combos = QHBoxLayout()
+
+        pixmap = QPixmap()
+        metadata = File("C:/Users/ryanr/OneDrive/Desktop/MCAST Degree 3/Second Semester/Software Desgin and Analysis "
+                        "(1)/Home Assignment/my_music/Johnny Cash - Man in black with lyrics.mp3")
+
+        # Johnny Cash - Man in black with lyrics.mp3
+
+        for tag in metadata.tags.values():
+            if tag.FrameID == 'APIC':
+                pixmap.loadFromData(tag.data)
+                print("HERE (designer)")
+                break
+
+        pix_scaled = pixmap.scaled(256, 256, Qt.KeepAspectRatio)
+        self.label.setPixmap(pix_scaled)
+        self.label.setAlignment(Qt.AlignCenter)
 
         self.cb1 = QComboBox()
         self.cb1.addItem("Sort by Title")
@@ -112,21 +134,19 @@ class App(QMainWindow):
         playlist_func.addWidget(remove_btn)
         # playlist_func.addWidget(QInputDialog)
 
-        # combos.addWidget(self.cb)
-        # combos.addWidget(self.cb2)
+        # bottom_func.addWidget(self.cb1)
+        # bottom_func.addWidget(self.label)
 
         # Add to vertical layout
         control_area.addLayout(controls)
         control_area.addLayout(playlist_ctrl_layout)
-
         control_area.addLayout(playlist_func)
         control_area.addWidget(volumeslider)
-
         control_area.addWidget(self.tableWidget)
         # control_area.addWidget(self.combos)
         control_area.addWidget(self.cb1)
-        # control_area.addWidget(self.cb2)
-
+        control_area.addWidget(self.label)
+        # control_area.addWidget(bottom_func)
         wid.setLayout(control_area)
 
         # Connect each signal to their appropriate function
@@ -272,15 +292,35 @@ class App(QMainWindow):
                                                               .strip('"\'')))
 
     def play_handler(self):
-        if self.playlist.mediaCount() == 0:
-            # if no songs in playlist prompt user to add files
-            self.add_files()
-        elif self.playlist.mediaCount() != 0:
-            # if songs in playlist play current song
-            for i in range(len(self.user_row_clicked)):
-                print(self.user_row_clicked[i], self.my_songs[i].get_title())
+        """Handles playing of songs.
+        1. If no playlist present, prompt user to load mp3 files
+        2. If playlist present and user presses play, first song will play
+        3. If playlist present and user clicks on song, and then presses play, desired song will play
+        4. If song is paused and user presses play, paused song will resume."""
+
+        # 4. Resuming paused song
+        if self.userAction == 2:
             self.player.play()
             self.userAction = 1
+        else:
+            if self.playlist.mediaCount() == 0:
+                # 1. if no songs in playlist prompt user to add files
+                self.add_files()
+            elif self.playlist.mediaCount() != 0:
+                # 2. Playing first song if user has not clicked on table row
+                if not self.user_row_clicked:
+                    self.player.playlist().setCurrentIndex(0)
+                    self.player.play()
+                # 3. Playing desired song
+                else:
+                    # self.user_row_clicked[-1] contains last element in list
+                    # index my_songs list with row user clicked to play desired song
+                    play_song = self.user_row_clicked[-1]
+                    print("Playing Row: ", play_song, self.my_songs[play_song].get_title())
+                    # Set current playlist index to play song
+                    self.player.playlist().setCurrentIndex(play_song)
+                    self.player.play()
+                    self.userAction = 1
 
     def pause_handler(self):
         self.userAction = 2
