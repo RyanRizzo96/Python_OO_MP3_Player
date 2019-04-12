@@ -1,32 +1,14 @@
-
 """ Quicksort Implementation following CLRS"""
 
 
 class Sort:
-    my_list = [2, 8, 7, 1, 3, 5, 6, 4]
 
     @staticmethod
-    def quicksort_title(arr, p, r):
+    def quicksort(arr, p, r):
         if p < r:
             q = Sort.partition(arr, p, r)
-            Sort.quicksort_title(arr, p, q-1)
-            Sort.quicksort_title(arr, q+1, r)
-        return arr
-
-    @staticmethod
-    def quicksort_artist(arr, p, r):
-        if p < r:
-            q = Sort.partition(arr, p, r)
-            Sort.quicksort_artist(arr, p, q-1)
-            Sort.quicksort_artist(arr, q+1, r)
-        return arr
-
-    @staticmethod
-    def quicksort_album(arr, p, r):
-        if p < r:
-            q = Sort.partition(arr, p, r)
-            Sort.quicksort_album(arr, p, q-1)
-            Sort.quicksort_album(arr, q+1, r)
+            Sort.quicksort(arr, p, q-1)
+            Sort.quicksort(arr, q+1, r)
         return arr
 
     @staticmethod

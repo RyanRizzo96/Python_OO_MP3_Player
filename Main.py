@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QApplication, QWidge
 from SongDatabase import *
 from mutagen import File
 from Sort import Sort
+import copy
 
 # TODO: Add search functionality to show results to user
 # TODO: Add  more songs to test functionality
@@ -32,6 +33,8 @@ class App(QMainWindow):
         self.my_albums = []
         self.user_row_clicked = []
         self.highlighted_row = None
+        self.my_songs_sorted = []
+        self.my_songs_copy = []
         self.metadata = File("python.jpg")
 
     def setup_UI(self):
@@ -220,38 +223,66 @@ class App(QMainWindow):
         self.populate_table(self.my_songs)
         pass
 
-    def selectionchange(self, i):
+    def selectionchange(self, choice):
         """ This function takes care of sorting songs based on title, artist or album
         as indicated by the user's button press"""
 
-        # print("Items in the list are :")
-        #
-        # for count in range(self.cb1.count()):
-        #     print(self.cb1.itemText(count))
+        self.my_songs_sorted = []
+        # self.my_songs_copy = copy.copy(self.my_songs)
+        # self.my_songs_copy.__dict__.update(self.my_songs.__dict__)
 
         n = len(self.my_songs)
+        print(n, " Songs in selection change")
 
-        if i == 0:
-            # Sort by title
-            # for i in range(n):
-            #     print(self.my_titles[i])
-            self.my_titles = Sort.quicksort_title(self.my_titles, 0, n-1)
+        # sort by title
+        if choice == 0:
+            self.my_titles = Sort.quicksort(self.my_titles, 0, n-1)     # calling quicksort
             for i in range(n):
-                print(self.my_titles[i])
-        elif i == 1:
-            # Sort by album
-            # for i in range(n):
-            #     print(self.my_albums[i])
-            self.my_albums = Sort.quicksort_album(self.my_albums, 0, n-1)
+                for j in range(n):
+                    if self.my_songs_copy[j].get_title() == self.my_titles[i]:
+                        self.my_songs_sorted.append(Song(self.my_songs[j].get_path(), self.my_songs[j].get_title(),
+                                                    self.my_songs[j].get_artist(), self.my_songs[j].get_album(),
+                                                    self.my_songs[j].get_length(), self.my_songs[j].get_art()))
+                        self.my_songs_copy[j].set_title('a')
+                        break
+
             for i in range(n):
-                print(self.my_albums[i])
+                self.my_songs_copy[i].set_title(self.my_songs[i].get_title())
+
+            self.populate_table(self.my_songs_sorted)
+
+        # Sort by album
+        elif choice == 1:
+            self.my_albums = Sort.quicksort(self.my_albums, 0, n-1)     # calling quicksort
+            for i in range(n):
+                for j in range(n):
+                    if self.my_songs_copy[j].get_album() == self.my_albums[i]:
+                        # self.my_songs_sorted[i] = self.my_songs[j]
+                        self.my_songs_sorted.append(Song(self.my_songs[j].get_path(), self.my_songs[j].get_title(),
+                                                    self.my_songs[j].get_artist(), self.my_songs[j].get_album(),
+                                                    self.my_songs[j].get_length(), self.my_songs[j].get_art()))
+                        self.my_songs_copy[j].set_album('a')
+                        break
+
+            for i in range(n):
+                self.my_songs_copy[i].set_album(self.my_songs[i].get_album())
+            self.populate_table(self.my_songs_sorted)
+
+        # Sort by artist
         else:
-            # Sort by artist
-            # for i in range(n):
-            #     print(self.my_artists[i])
-            self.my_artists = Sort.quicksort_artist(self.my_artists, 0, n-1)
+            self.my_artists = Sort.quicksort(self.my_artists, 0, n-1)   # calling quicksort
             for i in range(n):
-                print(self.my_artists[i])
+                for j in range(n):
+                    if self.my_songs_copy[j].get_artist() == self.my_artists[i]:
+                        self.my_songs_sorted.append(Song(self.my_songs[j].get_path(), self.my_songs[j].get_title(),
+                                                    self.my_songs[j].get_artist(), self.my_songs[j].get_album(),
+                                                    self.my_songs[j].get_length(), self.my_songs[j].get_art()))
+                        self.my_songs_copy[j].set_artist('a')
+                        break
+
+            for i in range(n):
+                self.my_songs_copy[i].set_artist(self.my_songs[i].get_artist())
+            self.populate_table(self.my_songs_sorted)
 
         print("Current index", i, "selection changed ", self.cb1.currentText())
 
@@ -279,7 +310,7 @@ class App(QMainWindow):
 
         print(folder_directory)
 
-        self.my_songs, self.my_titles, self.my_artists, self.my_albums = \
+        self.my_songs, self.my_songs_copy, self.my_titles, self.my_artists, self.my_albums = \
             SongDatabase.retrieve_songs(directory=folder_directory)
 
         print("self", self.my_songs, self.my_titles, self.my_artists, self.my_albums)

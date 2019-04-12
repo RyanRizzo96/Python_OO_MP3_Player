@@ -19,21 +19,22 @@ class SongDatabase:
         my_titles = []
         my_artists = []
         my_albums = []
+        my_songs_copy = []
         for dirpath, dirnames, filenames in os.walk(directory):
             for filename in [f for f in filenames if f.endswith(".mp3")]:
                 song_path = os.path.join(dirpath, filename)
-                SongDatabase.get_song_info(path=song_path, my_songs=my_songs, my_titles=my_titles,
-                                           my_artists=my_artists, my_albums=my_albums)
+                SongDatabase.get_song_info(path=song_path, my_songs=my_songs, my_songs_sorted=my_songs_copy,
+                                           my_titles=my_titles, my_artists=my_artists, my_albums=my_albums)
                 SongDatabase.total += 1
                 # print(os.path.join(dirpath, filename))
 
         print(SongDatabase.total, "songs found")
         SongDatabase.total = 0
         print(my_songs)
-        return my_songs, my_titles, my_artists, my_albums
+        return my_songs, my_songs_copy, my_titles, my_artists, my_albums
 
     @staticmethod
-    def get_song_info(path, my_songs, my_titles, my_artists, my_albums):
+    def get_song_info(path, my_songs, my_songs_sorted, my_titles, my_artists, my_albums):
         audio = EasyID3(path)
         audiom = MP3(path)
         pixmap = QtGui.QPixmap()
@@ -59,6 +60,8 @@ class SongDatabase:
         album = album.strip('"\'')
 
         my_songs.append(Song(path, title, artist, album, song_length, pixmap))
+        my_songs_sorted.append(Song(path, title, artist, album, song_length, pixmap))
+
         my_titles.append(title)
         my_artists.append(artist)
         my_albums.append(album)
