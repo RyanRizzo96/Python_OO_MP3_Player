@@ -10,6 +10,7 @@ from Sort import Sort
 import copy
 
 # TODO: Add search functionality to show results to user
+# TODO: Highlight playing row
 # TODO: Add  more songs to test functionality
 
 
@@ -26,6 +27,7 @@ class App(QMainWindow):
         self.height = 150
         self.color = 0  # 0- toggle to dark 1- toggle to light
         self.userAction = -1  # 0- stopped, 1- playing 2-paused
+        self.is_sorted = False
         self.setup_UI()
         self.my_songs = []
         self.my_titles = []
@@ -214,19 +216,27 @@ class App(QMainWindow):
         text, ok_pressed = QInputDialog.getText(self, "Search", "Filter:", QLineEdit.Normal, "")
         if ok_pressed and text != '':
             print("Searching for: ", text)
-            SongDatabase.filter_songs_search(self.my_songs, text)
+            if self.is_sorted:
+                SongDatabase.filter_songs_search(self.my_songs_sorted, text)
+            else:
+                SongDatabase.filter_songs_search(self.my_songs, text)
 
     def remove_handler(self):
         self.player.playlist().removeMedia(self.highlighted_row)    # remove from playlist
-        print("removed row: ", self.highlighted_row, "Song: ", self.my_songs[self.highlighted_row].get_title())
-        del self.my_songs[self.highlighted_row]     # remove from list
-        self.populate_table(self.my_songs)
+        if self.is_sorted:
+            print("removed row: ", self.highlighted_row, "Song: ", self.my_songs_sorted[self.highlighted_row].get_title())
+            del self.my_songs_sorted[self.highlighted_row]     # remove from list
+            self.populate_table(self.my_songs_sorted)
+        else:
+            print("removed row: ", self.highlighted_row, "Song: ", self.my_songs[self.highlighted_row].get_title())
+            del self.my_songs[self.highlighted_row]  # remove from list
+            self.populate_table(self.my_songs)
         pass
 
     def selectionchange(self, choice):
         """ This function takes care of sorting songs based on title, artist or album
         as indicated by the user's button press"""
-
+        self.is_sorted = True
         self.my_songs_sorted = []
         # self.my_songs_copy = copy.copy(self.my_songs)
         # self.my_songs_copy.__dict__.update(self.my_songs.__dict__)
@@ -285,6 +295,12 @@ class App(QMainWindow):
             self.populate_table(self.my_songs_sorted)
 
         print("Current index", i, "selection changed ", self.cb1.currentText())
+
+        # clear current playlist
+        self.playlist.clear()
+        # Add current sorted playlist to inbuilt playlist
+        for i in range(n):
+            self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(self.my_songs_sorted[i].get_path())))
 
     def add_files(self):
         # If playlist contains songs, simply call folder_iterator
@@ -369,8 +385,13 @@ class App(QMainWindow):
                 self.add_files()
             elif self.playlist.mediaCount() != 0:
                 # 2. Playing first song if user has not clicked on table row
-                if not self.user_row_clicked:
+                if not self.user_row_clicked and not self.is_sorted:
                     self.metadata = File(self.my_songs[0].get_path())
+                    self.show_cover_art()
+                    self.player.playlist().setCurrentIndex(0)
+                    self.player.play()
+                elif not self.user_row_clicked and self.is_sorted:
+                    self.metadata = File(self.my_songs_sorted[0].get_path())
                     self.show_cover_art()
                     self.player.playlist().setCurrentIndex(0)
                     self.player.play()
@@ -378,14 +399,25 @@ class App(QMainWindow):
                 else:
                     # self.user_row_clicked[-1] contains last element in list
                     # index my_songs list with row user clicked to play desired song
-                    play_song = self.user_row_clicked[-1]
-                    print("Playing Row: ", play_song, self.my_songs[play_song].get_title())
-                    # Set current playlist index to play song
-                    self.player.playlist().setCurrentIndex(play_song)
-                    self.metadata = File(self.my_songs[play_song].get_path())
-                    self.show_cover_art()
-                    self.player.play()
-                    self.userAction = 1
+                    if not self.is_sorted:
+                        play_song = self.user_row_clicked[-1]
+                        print("Playing Row: ", play_song, self.my_songs[play_song].get_title())
+                        # Set current playlist index to play song
+                        self.player.playlist().setCurrentIndex(play_song)
+                        self.metadata = File(self.my_songs[play_song].get_path())
+                        self.show_cover_art()
+                        self.player.play()
+                        self.userAction = 1
+                    elif self.is_sorted:
+                        play_song = self.user_row_clicked[-1]
+                        print("Playing Row: ", play_song, self.my_songs_sorted[play_song].get_title())
+                        # Set current playlist index to play song
+                        self.player.playlist().setCurrentIndex(play_song)
+                        self.metadata = File(self.my_songs_sorted[play_song].get_path())
+                        self.show_cover_art()
+                        self.player.play()
+                        self.userAction = 1
+
 
     def pause_handler(self):
         self.userAction = 2
@@ -407,14 +439,20 @@ class App(QMainWindow):
             self.player.playlist().previous()
             index = self.player.playlist().currentIndex()       # get current song index
             print(index)
-            self.metadata = File(self.my_songs[index].get_path())     # update metadata
+            if self.is_sorted:
+                self.metadata = File(self.my_songs_sorted[index].get_path())     # update metadata
+            else:
+                self.metadata = File(self.my_songs[index].get_path())  # update metadata
             self.show_cover_art()                               # display current song art
 
     def shuffle_list(self):
         self.playlist.shuffle()
         index = self.player.playlist().currentIndex()
         print(index)
-        self.metadata = File(self.my_songs[index].get_path())
+        if self.is_sorted:
+            self.metadata = File(self.my_songs_sorted[index].get_path())
+        else:
+            self.metadata = File(self.my_songs[index].get_path())
         self.show_cover_art()
 
     def next_song(self):
@@ -423,8 +461,12 @@ class App(QMainWindow):
         elif self.playlist.mediaCount() != 0:
             self.player.playlist().next()
             index = self.player.playlist().currentIndex()
-            print(self.my_songs[index].get_path())
-            self.metadata = File(self.my_songs[index].get_path())
+            if self.is_sorted:
+                print(self.my_songs_sorted[index].get_path())
+                self.metadata = File(self.my_songs_sorted[index].get_path())
+            else:
+                print(self.my_songs[index].get_path())
+                self.metadata = File(self.my_songs[index].get_path())
             self.show_cover_art()
 
     def song_changed(self, media):
