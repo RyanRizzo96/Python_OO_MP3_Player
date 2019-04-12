@@ -1,7 +1,7 @@
 import math
 import os
 import os.path
-import Song
+from Song import *
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 from mutagen import File
@@ -16,20 +16,24 @@ class SongDatabase:
     @staticmethod
     def retrieve_songs(directory):
         my_songs = []
+        my_titles = []
+        my_artists = []
+        my_albums = []
         for dirpath, dirnames, filenames in os.walk(directory):
             for filename in [f for f in filenames if f.endswith(".mp3")]:
                 song_path = os.path.join(dirpath, filename)
-                SongDatabase.get_song_info(path=song_path, my_songs=my_songs)
+                SongDatabase.get_song_info(path=song_path, my_songs=my_songs, my_titles=my_titles,
+                                           my_artists=my_artists, my_albums=my_albums)
                 SongDatabase.total += 1
                 # print(os.path.join(dirpath, filename))
 
         print(SongDatabase.total, "songs found")
         SongDatabase.total = 0
         print(my_songs)
-        return my_songs
+        return my_songs, my_titles, my_artists, my_albums
 
     @staticmethod
-    def get_song_info(path, my_songs):
+    def get_song_info(path, my_songs, my_titles, my_artists, my_albums):
         audio = EasyID3(path)
         audiom = MP3(path)
         pixmap = QtGui.QPixmap()
@@ -54,7 +58,10 @@ class SongDatabase:
         album = str(audio['album']).strip('[]')
         album = album.strip('"\'')
 
-        my_songs.append(Song.Song(path, title, artist, album, song_length, pixmap))
+        my_songs.append(Song(path, title, artist, album, song_length, pixmap))
+        my_titles.append(title)
+        my_artists.append(artist)
+        my_albums.append(album)
 
     @staticmethod
     def print_song_info(my_songs):

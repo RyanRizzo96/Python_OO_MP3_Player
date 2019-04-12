@@ -6,6 +6,7 @@ from PyQt5.QtMultimedia import QMediaPlaylist, QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QApplication, QWidget, QInputDialog, QLineEdit, QLabel
 from SongDatabase import *
 from mutagen import File
+from Sort import Sort
 
 # TODO: Add search functionality to show results to user
 # TODO: Add  more songs to test functionality
@@ -26,6 +27,9 @@ class App(QMainWindow):
         self.userAction = -1  # 0- stopped, 1- playing 2-paused
         self.setup_UI()
         self.my_songs = []
+        self.my_titles = []
+        self.my_artists = []
+        self.my_albums = []
         self.user_row_clicked = []
         self.highlighted_row = None
         self.metadata = File("python.jpg")
@@ -217,10 +221,38 @@ class App(QMainWindow):
         pass
 
     def selectionchange(self, i):
-        print("Items in the list are :")
+        """ This function takes care of sorting songs based on title, artist or album
+        as indicated by the user's button press"""
 
-        for count in range(self.cb1.count()):
-            print(self.cb1.itemText(count))
+        # print("Items in the list are :")
+        #
+        # for count in range(self.cb1.count()):
+        #     print(self.cb1.itemText(count))
+
+        n = len(self.my_songs)
+
+        if i == 0:
+            # Sort by title
+            # for i in range(n):
+            #     print(self.my_titles[i])
+            self.my_titles = Sort.quicksort_title(self.my_titles, 0, n-1)
+            for i in range(n):
+                print(self.my_titles[i])
+        elif i == 1:
+            # Sort by album
+            # for i in range(n):
+            #     print(self.my_albums[i])
+            self.my_albums = Sort.quicksort_album(self.my_albums, 0, n-1)
+            for i in range(n):
+                print(self.my_albums[i])
+        else:
+            # Sort by artist
+            # for i in range(n):
+            #     print(self.my_artists[i])
+            self.my_artists = Sort.quicksort_artist(self.my_artists, 0, n-1)
+            for i in range(n):
+                print(self.my_artists[i])
+
         print("Current index", i, "selection changed ", self.cb1.currentText())
 
     def add_files(self):
@@ -247,8 +279,10 @@ class App(QMainWindow):
 
         print(folder_directory)
 
-        self.my_songs = SongDatabase.retrieve_songs(directory=folder_directory)
-        print(self.my_songs)
+        self.my_songs, self.my_titles, self.my_artists, self.my_albums = \
+            SongDatabase.retrieve_songs(directory=folder_directory)
+
+        print("self", self.my_songs, self.my_titles, self.my_artists, self.my_albums)
         total = SongDatabase.print_song_info(my_songs=self.my_songs)
         self.populate_table(self.my_songs)
 

@@ -25,6 +25,3 @@ class Song:
 
     def get_length(self):
         return self.length
-
-
-# song = Song()
